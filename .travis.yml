@@ -1,6 +1,6 @@
 ---
 dist: trusty
-sudo: false
+sudo: required
 
 language: python
 python: "2.7"
@@ -39,11 +39,11 @@ branches:
     - master
 
 before_install:
-  - apt-get update -qq
-  - apt-get -y install aptitude
+  - sudo apt-get update -qq
+  - sudo apt-get -y install apt
 
   # Remove lxc-docker and docker.io
-  - apt-get remove --purge --yes lxc-docker* docker.io* || true
+  - sudo apt-get remove --purge --yes lxc-docker* docker.io* || true
 
 install:
   # Install Ansible.
@@ -73,7 +73,3 @@ script:
 
 notifications:
   email: false
-  hipchat:
-    rooms:
-      secure: GPUtM44MpgqN/3+TXw4Onp7TpF6YOKpVQkB/sfwGYS1oHUCkp2eb3eGGfJAIUtNxkfFVkdUxM/Bp9GMCnpVjJwRRZP6hYUmlpjCHl8CiK2MjbLvzV65qqBAqYl5bLzKkmmRdPiC31m9ixMe4TiAhJFBK1NoETOP1LkCJ04ezL6U=
-webhooks: https://galaxy.ansible.com/api/v1/notifications/
