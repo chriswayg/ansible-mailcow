@@ -1,8 +1,9 @@
-Role Name
-=========
+chriswayg.mailcow
+=================
 
-mailcow Mailserver and Groupware
+#### Ansible role for an initial install of the mailcow mailserver and groupware
 
+Details and documentation:
 - https://github.com/mailcow/mailcow-dockerized
 - https://mailcow.github.io/mailcow-dockerized-docs/
 - https://mailcow.email/
@@ -14,7 +15,7 @@ Requirements
 - Debian 9 stretch
 - 1.5 to 2 GB RAM
 
-### Info
+#### Info
 
 - mailcow: dockerized requires some ports to be open for incoming connections, so make sure that your firewall is not blocking these.
 - Make sure that no other application is interferring with mailcow's configuration, such as another mail service
@@ -47,4 +48,4 @@ BSD
 Author Information
 ------------------
 
-Christian Wanger
+Christian Wagner
