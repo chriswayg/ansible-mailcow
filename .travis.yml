@@ -7,21 +7,22 @@ python: "2.7"
 env:
   - ANSIBLE_VERSION=latest
   - ANSIBLE_VERSION=2.5.0
-  - ANSIBLE_VERSION=2.4.4.0
-  - ANSIBLE_VERSION=2.4.3.0
-  - ANSIBLE_VERSION=2.4.2.0
-  - ANSIBLE_VERSION=2.4.1.0
-  - ANSIBLE_VERSION=2.4.0.0
+  # - ANSIBLE_VERSION=2.4.4.0
+  # - ANSIBLE_VERSION=2.4.3.0
+  # - ANSIBLE_VERSION=2.4.2.0
+  # - ANSIBLE_VERSION=2.4.1.0
+  # - ANSIBLE_VERSION=2.4.0.0
 
 branches:
   only:
     - master
 
 before_install:
-  - sudo apt-get update -qq
+  - apt-get update -qq
+  - apt-get install -y aptitude
 
   # Remove lxc-docker and docker.io
-  - sudo apt-get remove --purge --yes lxc-docker* docker.io* || true
+  - apt-get remove --purge --yes lxc-docker* docker.io* || true
 
 install:
   # Install Ansible.
