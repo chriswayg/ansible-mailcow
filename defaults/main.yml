@@ -1,0 +1,17 @@
+---
+# defaults file for chriswayg.mailcow
+
+### Set your Server IP, Fully Qualified Domain Name and Timezone here ###
+mc_fqdn: mail.lightinasia.org
+mc_hostname: mail
+mc_timezone: Asia/Manila
+
+mc_min_memory: 1900 # in MB
+mc_ip: "{{ ansible_default_ipv4.address }}"
+mc_install_dir: /opt/mailcow-dockerized
+mc_dbpass: "{{ lookup('password', '/dev/null length=28 chars=ascii_letters,digits') }}"
+mc_dbroot: "{{ lookup('password', '/dev/null length=28 chars=ascii_letters,digits') }}"
+
+# packages we want on this server
+mc_packages:
+  - psmisc

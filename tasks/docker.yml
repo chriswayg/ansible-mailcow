@@ -1,0 +1,53 @@
+---
+# https://docs.docker.com/install/linux/docker-ce/debian/
+# https://docs.docker.com/compose/install/#alternative-install-options
+
+- name: Ensure old versions of Docker are not installed.
+  apt:
+    pkg: "{{ item }}"
+    state: absent
+    autoremove: yes
+    purge: yes
+  with_items:
+    - docker
+    - docker-engine
+    - docker.io
+
+- name: Install pre-requisite packages for Docker and docker-compose
+  apt:
+    pkg: "{{ item }}"
+    state: present
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg2
+    - software-properties-common
+    - python-pip
+
+- name: Add Docker apt Debian key.
+  apt_key:
+    url: https://download.docker.com/linux/debian/gpg
+    id: 0EBFCD88
+    state: present
+
+- name: Add Docker Debian repository.
+  apt_repository:
+    repo: "deb https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    state: present
+    update_cache: yes
+
+- name: Install Docker.
+  apt:
+    pkg: docker-ce
+    state: present
+
+# this is needed for ansible docker_service to work
+# docker-compose from github did not work
+- name: Install docker-py, docker-compose & pexpect packages.
+  pip:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - docker-compose
+    - pexpect

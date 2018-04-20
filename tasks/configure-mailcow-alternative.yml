@@ -1,0 +1,56 @@
+---
+
+# This uses the template mailcow.conf.j2
+# this may need to be modified, if the the mailcow config-file generator has changed
+# rather use the original script
+
+- name: copy but don't overwrite generate_config-original.sh from April 13
+  copy:
+    src: generate_config-original.sh
+    dest: "{{ mc_install_dir }}/generate_config-original.sh"
+    force: no
+
+- name: checksum generate_config-original.sh
+  stat:
+    path: "{{ mc_install_dir }}/generate_config-original.sh"
+    checksum_algorithm: sha1
+  register: before
+
+- name: checksum generate_config.sh
+  stat:
+    path: "{{ mc_install_dir }}/generate_config.sh"
+    checksum_algorithm: sha1
+  register: after
+
+- name: create a placeholder-file
+  copy:
+    content: "# Placeholder"
+    dest: "{{ mc_install_dir }}/data/conf/rspamd/override.d/worker-controller-password.inc"
+    force: no
+
+- name: Generate mailcow configuration file with FQDN, Timezone and DB passwords (runs only once).
+  template:
+    src: mailcow.conf.j2
+    dest: "{{ mc_install_dir }}/mailcow.conf"
+    force: no
+
+- name: create directory for SSL certificates
+  file:
+    path: "{{ mc_install_dir }}/data/assets/ssl"
+    state: directory
+
+- name: copy but don't overwrite existing SSL certificates
+  shell: "cp -nv {{ mc_install_dir }}/data/assets/ssl-example/*.pem {{ mc_install_dir }}/data/assets/ssl/"
+
+# - name: copy but don't overwrite existing SSL certificates (can't find the file)
+#   copy:
+#     src: "{{ item }}"
+#     dest: "{{ mc_install_dir }}/data/assets/ssl/"
+#     remote_src: yes
+#     force: no
+#   with_fileglob: "{{ mc_install_dir }}/data/assets/ssl-example/*.pem"
+
+- name: Show a warning, if the mailcow config-file generator has changed
+  debug:
+    msg='### WARNING: The mailcow config-file generator has changed and should be checked! ###'
+  when: "'{{before.stat.checksum}}' != '{{after.stat.checksum}}'"

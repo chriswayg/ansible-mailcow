@@ -1,0 +1,45 @@
+---
+
+- name: Clone mailcow repo.
+  git:
+    repo: https://github.com/mailcow/mailcow-dockerized
+    dest: "{{ mc_install_dir }}"
+    clone: yes
+    update: yes
+    force: yes
+
+- name: Insert DB password into generate_config.sh
+  lineinfile:
+    dest: "{{ mc_install_dir }}/generate_config.sh"
+    regexp: "^DBPASS="
+    line: "DBPASS={{ mc_dbpass }}"
+    state: present
+    backup: yes
+
+- name: Insert DB root password into generate_config.sh
+  lineinfile:
+    dest: "{{ mc_install_dir }}/generate_config.sh"
+    regexp: "^DBROOT="
+    line: "DBROOT={{ mc_dbroot }}"
+    state: present
+    backup: yes
+
+# Run the generate_config.sh script with expect
+- name: Generate mailcow configuration (only runs once).
+  expect:
+    command: ./generate_config.sh
+    responses:
+      Timezone: " "
+  args:
+    chdir: /opt/mailcow-dockerized/
+    creates: "{{ mc_install_dir }}/mailcow.conf"
+  environment:
+    MAILCOW_HOSTNAME: "{{ mc_fqdn }}"
+
+- name: Insert timezone into generate_config.sh
+  lineinfile:
+    dest: "{{ mc_install_dir }}/mailcow.conf"
+    regexp: "^TZ"
+    line: "TZ={{ mc_timezone }}"
+    state: present
+    backup: yes

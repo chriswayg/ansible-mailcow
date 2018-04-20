@@ -1,0 +1,67 @@
+---
+# tasks file for chriswayg.mailcow
+
+- name: WARNING
+  pause:
+    prompt: "This will REMOVE other email MTAs from the server! Press Enter to continue..."
+
+- name: check, if we have enough memory on the server
+  assert:
+    that:
+        - ansible_memory_mb.real.total >= {{ mc_min_memory }}
+
+# see also https://github.com/holms/ansible-fqdn
+- name: Set hostname.
+  hostname:
+    name: "{{ mc_hostname }}"
+  notify:
+    - restart systemd-logind
+
+- name: Copy hosts file with FQDN and hostname.
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+  notify:
+    - restart systemd-logind
+
+- name: Set timezone.
+  timezone:
+    name: "{{ mc_timezone }}"
+
+- name: Remove other mail packages.
+  apt:
+    pkg: "{{ item }}"
+    state: absent
+    autoremove: yes
+    purge: yes
+  with_items:
+    - exim4*
+    - postfix*
+    - sendmail*
+
+- name: Update and upgrade all packages.
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400 #One day
+
+- name: Install some packages.
+  apt:
+    pkg: "{{ item }}"
+    state: present
+  with_items: "{{ mc_packages }}"
+
+- include: docker.yml
+
+- name: Generate mailcow configuration file, if it does not exist yet
+  stat:
+    path: "{{ mc_install_dir }}/mailcow.conf"
+  register: mailcow_conf
+- include: configure-mailcow.yml
+  when: mailcow_conf.stat.exists == False
+
+- name: Pull docker images & start containers as defined in docker-compose.yml (wait!).
+  docker_service:
+    project_src: "{{ mc_install_dir }}"
+    pull: yes
+    state: present # docker-compose up
