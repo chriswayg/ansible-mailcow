@@ -1,0 +1,55 @@
+---
+dist: stretch
+
+language: python
+python: "2.7"
+
+env:
+  - ANSIBLE_VERSION=latest
+  - ANSIBLE_VERSION=2.5.0
+  - ANSIBLE_VERSION=2.4.4.0
+  - ANSIBLE_VERSION=2.4.3.0
+  - ANSIBLE_VERSION=2.4.2.0
+  - ANSIBLE_VERSION=2.4.1.0
+  - ANSIBLE_VERSION=2.4.0.0
+
+branches:
+  only:
+    - master
+
+before_install:
+  - sudo apt-get update -qq
+
+  # Remove lxc-docker and docker.io
+  - sudo apt-get remove --purge --yes lxc-docker* docker.io* || true
+
+install:
+  # Install Ansible.
+  - if [ "$ANSIBLE_VERSION" = "latest" ]; then pip install ansible; else pip install ansible==$ANSIBLE_VERSION; fi
+  - if [ "$ANSIBLE_VERSION" = "latest" ]; then pip install ansible-lint; fi
+
+script:
+  # Check the role/playbook's syntax.
+  - ansible-playbook -i tests/inventory tests/test.yml --syntax-check
+
+  # Run the role/playbook with ansible-playbook.
+  - ansible-playbook -i tests/inventory tests/test.yml -vvvv
+
+  # Run the role/playbook again, checking to make sure it's idempotent.
+  - >
+    ansible-playbook -i tests/inventory tests/test.yml
+    | grep -q 'changed=0.*failed=0'
+    && (echo 'Idempotence test: pass' && exit 0)
+    || (echo 'Idempotence test: fail' && exit 1)
+  # Test installation
+  - >
+    sudo docker run hello-world
+    | grep -q 'Hello from Docker'
+    && (echo 'Installation test: pass' && exit 0)
+    || (echo 'Installation test: fail' && exit 1)
+  - if [ "$ANSIBLE_VERSION" = "latest" ]; then ansible-lint tests/test.yml || true; fi
+
+notifications:
+  email:
+    on_failure: always
+    on_success: change

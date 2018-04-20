@@ -1,5 +1,7 @@
 ---
 - hosts: localhost
-  remote_user: root
+  connection: local
+  become: true
   roles:
-    - chriswayg.mailcow
+    - ../../
+    
