@@ -1,9 +1,9 @@
 ---
 # tasks file for chriswayg.mailcow
 
-- name: WARNING
-  pause:
-    prompt: "This will REMOVE other email MTAs from the server! Press Enter to continue..."
+# - name: WARNING
+#   pause:
+#     prompt: "This will REMOVE other email MTAs from the server! Press Enter to continue..."
 
 - name: check, if we have enough memory on the server
   assert:
