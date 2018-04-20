@@ -6,7 +6,7 @@ mc_fqdn: mail.lightinasia.org
 mc_hostname: mail
 mc_timezone: Asia/Manila
 
-mc_min_memory: 1900 # in MB
+mc_min_memory: 1500 # in MB
 mc_ip: "{{ ansible_default_ipv4.address }}"
 mc_install_dir: /opt/mailcow-dockerized
 mc_dbpass: "{{ lookup('password', '/dev/null length=28 chars=ascii_letters,digits') }}"
