@@ -39,15 +39,16 @@ Example Playbook
 ----------------
 
     - hosts: servers
+      user: root
       roles:
          - chriswayg.mailcow
 
-`$ ansible-playbook -i hosts -v -u root mailcow.yml`
+`$ ansible-playbook -v mailcow.yml`
 
 License
 -------
 
-BSD
+MIT
 
 Author Information
 ------------------

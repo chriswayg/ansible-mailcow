@@ -2,9 +2,9 @@
 # defaults file for chriswayg.mailcow
 
 ### Set your Server IP, Fully Qualified Domain Name and Timezone here ###
-mc_fqdn: mail.lightinasia.org
+mc_fqdn: mail.example.org
 mc_hostname: mail
-mc_timezone: Asia/Manila
+mc_timezone: Europe/Berlin
 
 mc_min_memory: 1500 # in MB
 mc_ip: "{{ ansible_default_ipv4.address }}"

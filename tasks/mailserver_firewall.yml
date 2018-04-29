@@ -7,8 +7,8 @@
 
 - name: Copy script which adds Mailserver IPtables rules.
   copy:
-    src:  add_mailserver_rules.sh
-    dest: /etc/firewall/add_mailserver_rules.sh
+    src:  add_mailserver_fw_rules.sh
+    dest: /etc/firewall/add_mailserver_fw_rules.sh
     mode: a+x
 
 - name: Create systemd service to add Firewall Mailserver rules to iptables.

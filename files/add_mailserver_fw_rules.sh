@@ -1,6 +1,6 @@
 #!/bin/sh
 # {{ ansible_managed }}
-# Add IPtables rules for Mailserver script /etc/firewall/add_mailserver_rules.sh
+# Add IPtables rules for Mailserver script /etc/firewall/add_mailserver_fw_rules.sh
 
 # Default policy to drop 'everything'
 iptables -P INPUT   DROP

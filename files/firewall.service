@@ -6,7 +6,7 @@ Description=Add Firewall Mailserver rules to iptables
 
 [Service]
 Type=oneshot
-ExecStart=/etc/firewall/add_mailserver_rules.sh
+ExecStart=/etc/firewall/add_mailserver_fw_rules.sh
 
 [Install]
 WantedBy=multi-user.target
