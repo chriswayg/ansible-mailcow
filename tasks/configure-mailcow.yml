@@ -36,7 +36,7 @@
   environment:
     MAILCOW_HOSTNAME: "{{ mc_fqdn }}"
 
-- name: Insert timezone into generate_config.sh
+- name: Insert timezone into mailcow.conf.
   lineinfile:
     dest: "{{ mc_install_dir }}/mailcow.conf"
     regexp: "^TZ"

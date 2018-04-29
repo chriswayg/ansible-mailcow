@@ -1,7 +1,7 @@
 ---
 
 # This uses the template mailcow.conf.j2
-# this may need to be modified, if the the mailcow config-file generator has changed
+# not used as this may need to be modified, if the the mailcow config-file generator has changed
 # rather use the original script
 
 - name: copy but don't overwrite generate_config-original.sh from April 13

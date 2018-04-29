@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+# /etc/systemd/system/firewall.service
+
+[Unit]
+Description=Add Firewall Mailserver rules to iptables
+
+[Service]
+Type=oneshot
+ExecStart=/etc/firewall/add_mailserver_rules.sh
+
+[Install]
+WantedBy=multi-user.target

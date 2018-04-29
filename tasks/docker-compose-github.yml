@@ -1,6 +1,6 @@
 ---
 
-# this did not work with docker_service, even after instlling docker-py
+# not used, as this did not work with ansible docker_service, even after instlling docker-py
 - name: Get latest docker-compose version number.
   command: "curl -Ls https://www.servercow.de/docker-compose/latest.php"
   register: docker_compose_version

@@ -22,8 +22,12 @@ Requirements
 - A correct DNS setup is crucial to every good mailserver setup, so please make sure you got at least the basics covered before you begin!
 - Make sure that your system has a correct date and time setup. This is crucial for stuff like two factor TOTP authentication.
 
-https://mailcow.github.io/mailcow-dockerized-docs/prerequesite-system/
+- Prerequisites: https://mailcow.github.io/mailcow-dockerized-docs/prerequesite-system/
+- DNS: https://github.com/mailcow/mailcow/wiki/DNS-records
 
+#### Moving IMAP mail from other servers
+
+* [imapsync](https://github.com/imapsync/imapsync)
 
 Role Variables
 --------------

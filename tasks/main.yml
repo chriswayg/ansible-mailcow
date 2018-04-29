@@ -28,32 +28,17 @@
   timezone:
     name: "{{ mc_timezone }}"
 
-- name: Remove other mail packages.
-  apt:
-    pkg: "{{ item }}"
-    state: absent
-    autoremove: yes
-    purge: yes
-  with_items:
-    - exim4*
-    - postfix*
-    - sendmail*
-
 - name: Update and upgrade all packages.
   apt:
     upgrade: yes
     update_cache: yes
     cache_valid_time: 86400 #One day
 
-- name: Install some packages.
-  apt:
-    pkg: "{{ item }}"
-    state: present
-  with_items: "{{ mc_packages }}"
-
 - include_tasks: docker.yml
 
-- name: Generate mailcow configuration file, if it does not exist yet
+# this ansible role will do this only for the initial install
+# use the mailcow update script for updates
+- name: Download mailcow & generate configuration file, if it does not exist yet
   stat:
     path: "{{ mc_install_dir }}/mailcow.conf"
   register: mailcow_conf
@@ -65,3 +50,7 @@
     project_src: "{{ mc_install_dir }}"
     pull: yes
     state: present # docker-compose up
+  when: mailcow_conf.stat.exists == False
+
+# Activate mailserver firewall rules.
+- include_tasks: mailserver_firewall.yml

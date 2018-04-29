@@ -7,3 +7,11 @@
     state: restarted
   when: >
     ansible_service_mgr == 'systemd'
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: restart firewall
+  service:
+    name: firewall.service
+    state: restarted

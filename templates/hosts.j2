@@ -1,6 +1,6 @@
-127.0.0.1 localhost.localdomain localhost
-127.0.0.1 {{ mc_fqdn }} {{ mc_hostname }}
+# {{ ansible_managed }}
 {{ ansible_default_ipv4.address }} {{ mc_fqdn }} {{ mc_hostname }}
+127.0.0.1 localhost.localdomain localhost
 
 # The following lines are desirable for IPv6 capable hosts
 ::1 localhost ip6-localhost ip6-loopback

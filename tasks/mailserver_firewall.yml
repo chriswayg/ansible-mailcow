@@ -1,0 +1,25 @@
+---
+
+- name: Create firewall folder.
+  file:
+   path:  /etc/firewall
+   state: directory
+
+- name: Copy script which adds Mailserver IPtables rules.
+  copy:
+    src:  add_mailserver_rules.sh
+    dest: /etc/firewall/add_mailserver_rules.sh
+    mode: a+x
+
+- name: Create systemd service to add Firewall Mailserver rules to iptables.
+  copy:
+    src:  firewall.service
+    dest: /etc/systemd/system/firewall.service
+  notify:
+  - reload systemd
+  - restart firewall
+
+- name: Enable Firewall Mailserver rules (on startup).
+  service:
+    name:    firewall.service
+    enabled: yes
