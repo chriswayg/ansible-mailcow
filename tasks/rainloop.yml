@@ -6,6 +6,13 @@
     path: "{{ mc_install_dir }}/data/web/webmail/data/_data_/_default_/domains/{{ mc_domain }}.ini"
   register: rainloop_installed
 
+- name: Install unzip used for RainLoop install.
+  apt:
+    pkg: "{{ item }}"
+    state: present
+  with_items:
+    - unzip
+
 - name: Create RainLoop webmail directory.
   file:
     state: directory
@@ -30,11 +37,16 @@
   command: docker exec --workdir /web/webmail/ mailcowdockerized_php-fpm-mailcow_1 chown -R www-data:www-data .
   when: rainloop_installed.stat.exists == False
 
+## application.ini is only created after visiting the admin page, thus its difficult to automate this in Ansible.
+- pause:
+    prompt: 'Visit https://{{ mc_fqdn }}/webmail/?admin#/login and add set {{ mc_domain }} as the default domain in RainLoop GUI.\n Then press Enter to continue!'
+  when: rainloop_installed.stat.exists == False
+
 - name: Insert admin password into RainLoop configuration file.
   lineinfile:
     dest: "{{ mc_install_dir }}/data/web/webmail/data/_data_/_default_/configs/application.ini"
-    regexp: "^default_domain ="
-    line: "default_domain = \"{{ mc_rainloop_password }}\""
+    regexp: "^admin_password ="
+    line: "admin_password = \"{{ mc_rainloop_password }}\""
     state: present
     backup: yes
   when: rainloop_installed.stat.exists == False
