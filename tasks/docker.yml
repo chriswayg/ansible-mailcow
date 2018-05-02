@@ -42,9 +42,9 @@
     pkg: docker-ce
     state: present
 
-# this is needed for ansible docker_service to work
-# docker-compose from github did not work
-- name: Install docker-py, docker-compose & pexpect packages.
+# pip installation of docker-compose is needed for ansible docker_service to work
+# docker-compose installed from github did not work
+- name: Install via pip docker-py, docker-compose & pexpect packages.
   pip:
     name: "{{ item }}"
     state: present
