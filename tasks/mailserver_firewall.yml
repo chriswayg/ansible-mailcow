@@ -1,6 +1,7 @@
 ---
-
-- name: Create firewall folder.
+# This is adding rules to the INPUT chain, without touching other firewall rules
+# rules created by docker or fail2ban should not be interfered with.
+- name: Create firewall directory.
   file:
    path:  /etc/firewall
    state: directory

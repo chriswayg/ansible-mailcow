@@ -1,0 +1,78 @@
+---
+# The follwing install tasks won't run if the domain file already exists.
+# Updates are handled by RainLoop itself.
+- name: Check for existing Rainloop install. The install tasks will run only once.
+  stat:
+    path: "{{ mc_install_dir }}/data/web/webmail/data/_data_/_default_/domains/{{ mc_domain }}.ini"
+  register: rainloop_installed
+
+- name: Create RainLoop webmail directory.
+  file:
+    state: directory
+    path: /opt/mailcow-dockerized/data/web/webmail
+  when: rainloop_installed.stat.exists == False
+
+- name: Download RainLoop.
+  unarchive:
+    src:  https://www.rainloop.net/repository/webmail/rainloop-latest.zip
+    dest: /opt/mailcow-dockerized/data/web/webmail
+    remote_src: Yes
+  when: rainloop_installed.stat.exists == False
+
+- name: Set RainLoop directory & file permissions.
+  shell: find . -type d -exec chmod 755 {} \; && find . -type f -exec chmod 644 {} \;
+  args:
+    chdir: /opt/mailcow-dockerized/data/web/webmail
+  when: rainloop_installed.stat.exists == False
+
+# During upgrades, observe if the name of the docker container stays the same!
+- name: Change owner of RainLoop inside Docker php-fpm container.
+  command: docker exec --workdir /web/webmail/ mailcowdockerized_php-fpm-mailcow_1 chown -R www-data:www-data .
+  when: rainloop_installed.stat.exists == False
+
+- name: Insert admin password into RainLoop configuration file.
+  lineinfile:
+    dest: "{{ mc_install_dir }}/data/web/webmail/data/_data_/_default_/configs/application.ini"
+    regexp: "^default_domain ="
+    line: "default_domain = \"{{ mc_rainloop_password }}\""
+    state: present
+    backup: yes
+  when: rainloop_installed.stat.exists == False
+
+- name: Insert default domain into RainLoop configuration file.
+  lineinfile:
+    dest: "{{ mc_install_dir }}/data/web/webmail/data/_data_/_default_/configs/application.ini"
+    regexp: "^default_domain ="
+    line: "default_domain = \"{{ mc_domain }}\""
+    state: present
+    backup: yes
+  when: rainloop_installed.stat.exists == False
+
+- name: Copy default domain configuration file into RainLoop.
+  template:
+    src: rainloop.domain.ini.j2
+    dest: "{{ mc_install_dir }}/data/web/webmail/data/_data_/_default_/domains/{{ mc_domain }}.ini"
+  when: rainloop_installed.stat.exists == False
+
+- name: Copy file to add RainLoop to app menu.
+  copy:
+    src: vars.local.inc.php
+    dest: /opt/mailcow-dockerized/data/web/inc/vars.local.inc.php
+
+- name: Secure RainLoop data folder in nginx configuration.
+  blockinfile:
+    path: /opt/mailcow-dockerized/data/conf/nginx/site.conf
+    insertbefore: "include /etc/nginx/conf.d/site.*.custom;"
+    content: |
+      location ^~ /webmail/data {
+        deny all;
+      }
+  register: rainloop_status
+
+- name: Restart the nginx container.
+  docker_container:
+    name: mailcowdockerized_nginx-mailcow_1
+    image: nginx:mainline-alpine
+    state: started
+    restart: yes
+  when: rainloop_status is changed

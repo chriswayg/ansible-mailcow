@@ -34,15 +34,26 @@
     update_cache: yes
     cache_valid_time: 86400 #One day
 
-- include_tasks: docker.yml
+# unzip used for RainLoop
+- name: Install pre-requisite packages
+  apt:
+    pkg: "{{ item }}"
+    state: present
+  with_items:
+    - unzip
+
+- name: Include Docker related tasks.
+  include_tasks: docker.yml
 
 # this ansible role will do this only for the initial install
 # use the mailcow update script for updates
-- name: Download mailcow & generate configuration file, if it does not exist yet
+- name: Check, if mailcow is installed already, by checking if mailcow.conf exists.
   stat:
     path: "{{ mc_install_dir }}/mailcow.conf"
   register: mailcow_conf
-- include_tasks: configure-mailcow.yml
+
+- name: Download mailcow & generate configuration file
+  include_tasks: configure-mailcow.yml
   when: mailcow_conf.stat.exists == False
 
 - name: Pull docker images & start containers as defined in docker-compose.yml (wait!).
@@ -52,5 +63,20 @@
     state: present # docker-compose up
   when: mailcow_conf.stat.exists == False
 
-# Activate mailserver firewall rules.
-- include_tasks: mailserver_firewall.yml
+- name: Install rainloop webmail client.
+  include_tasks: rainloop.yml
+  when: mc_rainloop_install
+
+- name: Activate mailserver firewall rules.
+  include_tasks: mailserver_firewall.yml
+  when: mc_firewall_activate
+
+- name: Create a daily backup cronjob to backup all mailcow data at 4:30 AM.
+  cron:
+    minute: 30
+    hour: 4
+    name: Backup all mailcow data
+    cron_file: mailcow_backups
+    user: root
+    job: "BACKUP_LOCATION={{ mc_backup_dir }} /opt/mailcow-dockerized/helper-scripts/backup_and_restore.sh backup all >> /var/log/mailcow_backups.log 2>&1"
+  when: mc_backup_dir != "none"
