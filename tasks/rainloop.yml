@@ -1,11 +1,4 @@
 ---
-# The follwing install tasks won't run if the domain file already exists.
-# Updates are handled by RainLoop itself.
-- name: Check for existing Rainloop install. The install tasks will run only once.
-  stat:
-    path: "{{ mc_install_dir }}/data/web/webmail/data/_data_/_default_/domains/{{ mc_domain }}.ini"
-  register: rainloop_installed
-
 - name: Install unzip used for RainLoop install.
   apt:
     pkg: "{{ item }}"
@@ -13,78 +6,90 @@
   with_items:
     - unzip
 
-- name: Create RainLoop webmail directory.
-  file:
-    state: directory
-    path: /opt/mailcow-dockerized/data/web/webmail
+- name: Check for existing Rainloop install. The install tasks will run only once.
+  stat:
+    path: "{{ mc_install_dir }}/data/web/{{ mc_rainloop_dir}}/data/_data_/_default_/domains/{{ mc_domain }}.ini"
+  register: rainloop_installed
+
+- name: The RainLoop install tasks won't run if the domain.ini file already exists. Updates are handled by RainLoop itself.
+  block:
+
+    - name: Create RainLoop webmail directory.
+      file:
+        state: directory
+        path: "{{ mc_install_dir }}/data/web/{{ mc_rainloop_dir}}"
+
+    - name: Download RainLoop.
+      unarchive:
+        src:  https://www.rainloop.net/repository/webmail/rainloop-latest.zip
+        dest: "{{ mc_install_dir }}/data/web/{{ mc_rainloop_dir}}"
+        remote_src: Yes
+
+    - name: Copy file for admin password creation into RainLoop.
+      template:
+        src: set-password.php.j2
+        dest: "{{ mc_install_dir }}/data/web/{{ mc_rainloop_dir}}/set-password.php"
+
+    - name: Set RainLoop admin password inside Docker php-fpm container.
+      command: "docker-compose exec -T php-fpm-mailcow php /web/{{ mc_rainloop_dir}}/set-password.php"
+      args:
+        chdir: "{{ mc_install_dir }}"
+
+    - name: Remove the set-password.php file, as it contains the cleartext admin password.
+      file:
+        path: "{{ mc_install_dir }}/data/web/{{ mc_rainloop_dir}}/set-password.php"
+        state: absent
+
+    - name: Insert default domain into RainLoop configuration file.
+      lineinfile:
+        dest: "{{ mc_install_dir }}/data/web/{{ mc_rainloop_dir}}/data/_data_/_default_/configs/application.ini"
+        regexp: "^default_domain ="
+        line: "default_domain = \"{{ mc_domain }}\""
+        state: present
+        backup: yes
+
+    - name: Copy default domain configuration file into RainLoop.
+      template:
+        src: rainloop.domain.ini.j2
+        dest: "{{ mc_install_dir }}/data/web/{{ mc_rainloop_dir}}/data/_data_/_default_/domains/{{ mc_domain }}.ini"
+
+    - name: Copy file to add RainLoop to mailcow app menu.
+      copy:
+        src: vars.local.inc.php
+        dest: "{{ mc_install_dir }}/data/web/inc/vars.local.inc.php"
+
+    - name: RainLoop permissions - set directory & file permissions.
+      shell: find . -type d -exec chmod 755 {} \; && find . -type f -exec chmod 644 {} \;
+      args:
+        chdir: "{{ mc_install_dir }}/data/web/{{ mc_rainloop_dir}}"
+
+    - name: RainLoop permissions - change owner of files to www-data inside Docker php-fpm container.
+      command: "docker-compose exec -T php-fpm-mailcow chown -R www-data:www-data /web/{{ mc_rainloop_dir}}/"
+      args:
+        chdir: "{{ mc_install_dir }}"
+
   when: rainloop_installed.stat.exists == False
 
-- name: Download RainLoop.
-  unarchive:
-    src:  https://www.rainloop.net/repository/webmail/rainloop-latest.zip
-    dest: /opt/mailcow-dockerized/data/web/webmail
-    remote_src: Yes
-  when: rainloop_installed.stat.exists == False
-
-- name: Set RainLoop directory & file permissions.
-  shell: find . -type d -exec chmod 755 {} \; && find . -type f -exec chmod 644 {} \;
-  args:
-    chdir: /opt/mailcow-dockerized/data/web/webmail
-  when: rainloop_installed.stat.exists == False
-
-# During upgrades, observe if the name of the docker container stays the same!
-- name: Change owner of RainLoop inside Docker php-fpm container.
-  command: docker exec --workdir /web/webmail/ mailcowdockerized_php-fpm-mailcow_1 chown -R www-data:www-data .
-  when: rainloop_installed.stat.exists == False
-
-## application.ini is only created after visiting the admin page, thus its difficult to automate this in Ansible.
-- pause:
-    prompt: 'Visit https://{{ mc_fqdn }}/webmail/?admin#/login and add set {{ mc_domain }} as the default domain in RainLoop GUI.\n Then press Enter to continue!'
-  when: rainloop_installed.stat.exists == False
-
-- name: Insert admin password into RainLoop configuration file.
-  lineinfile:
-    dest: "{{ mc_install_dir }}/data/web/webmail/data/_data_/_default_/configs/application.ini"
-    regexp: "^admin_password ="
-    line: "admin_password = \"{{ mc_rainloop_password }}\""
-    state: present
-    backup: yes
-  when: rainloop_installed.stat.exists == False
-
-- name: Insert default domain into RainLoop configuration file.
-  lineinfile:
-    dest: "{{ mc_install_dir }}/data/web/webmail/data/_data_/_default_/configs/application.ini"
-    regexp: "^default_domain ="
-    line: "default_domain = \"{{ mc_domain }}\""
-    state: present
-    backup: yes
-  when: rainloop_installed.stat.exists == False
-
-- name: Copy default domain configuration file into RainLoop.
-  template:
-    src: rainloop.domain.ini.j2
-    dest: "{{ mc_install_dir }}/data/web/webmail/data/_data_/_default_/domains/{{ mc_domain }}.ini"
-  when: rainloop_installed.stat.exists == False
-
-- name: Copy file to add RainLoop to app menu.
-  copy:
-    src: vars.local.inc.php
-    dest: /opt/mailcow-dockerized/data/web/inc/vars.local.inc.php
-
-- name: Secure RainLoop data folder in nginx configuration.
+- name: Secure RainLoop /data/ directory in nginx configuration.
   blockinfile:
-    path: /opt/mailcow-dockerized/data/conf/nginx/site.conf
+    path: "{{ mc_install_dir }}/data/conf/nginx/site.conf"
     insertbefore: "include /etc/nginx/conf.d/site.*.custom;"
     content: |
-      location ^~ /webmail/data {
+      location ^~ /{{ mc_rainloop_dir}}/data {
         deny all;
       }
   register: rainloop_status
 
 - name: Restart the nginx container.
-  docker_container:
-    name: mailcowdockerized_nginx-mailcow_1
-    image: nginx:mainline-alpine
-    state: started
-    restart: yes
+  # docker_container:
+  #   name: mailcowdockerized_nginx-mailcow_1
+  #   image: nginx:mainline-alpine
+  #   state: started
+  #   restart: yes
+  # when: rainloop_status is changed
+  docker_service:
+    project_src: "{{ mc_install_dir }}"
+    state: present
+    services: nginx-mailcow
+    restarted: yes
   when: rainloop_status is changed
