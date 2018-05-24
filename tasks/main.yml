@@ -37,25 +37,18 @@
 - name: Include Docker related tasks.
   include_tasks: docker.yml
 
-# this ansible role will do this only for the initial install
-# use the mailcow update script for updates
 - name: Check, if mailcow is installed already, by checking if mailcow.conf exists.
   stat:
     path: "{{ mc_install_dir }}/mailcow.conf"
   register: mailcow_conf
 
-- name: Download mailcow & generate configuration file
-  include_tasks: configure-mailcow.yml
-  when: mailcow_conf.stat.exists == False
+# this ansible role will do this only for the initial install
+# use the mailcow update script for updates
+- name: Download, configure and install mailcow-dockerized.
+  include_tasks: install-mailcow.yml
+  when: mailcow_conf.stat.exists == false
 
-- name: Pull docker images & start containers as defined in docker-compose.yml (wait!).
-  docker_service:
-    project_src: "{{ mc_install_dir }}"
-    pull: yes
-    state: present # docker-compose up
-  when: mailcow_conf.stat.exists == False
-
-- name: Install rainloop webmail client.
+- name: Install RainLoop webmail client.
   include_tasks: rainloop.yml
   when: mc_rainloop_install
 
