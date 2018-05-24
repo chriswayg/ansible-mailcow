@@ -1,12 +1,23 @@
 ---
+### Download, configure and install mailcow-dockerized.
 
 - name: Clone mailcow repo.
   git:
     repo: https://github.com/mailcow/mailcow-dockerized
+    version: master
     dest: "{{ mc_install_dir }}"
     clone: yes
     update: yes
     force: yes
+
+## For debugging:
+# - name: Git checkout previous working work version.
+#   shell: git checkout 7031af4
+#   args:
+#     chdir: "{{ mc_install_dir }}"
+
+- debug:
+    msg: "User: {{mc_username}} Host: {{mc_hostname}} Domain: {{mc_domain}} FQDN: {{mc_fqdn}} Nextcloud: {{ mc_nextcloud_subdomain }}"
 
 - name: Insert DB password into generate_config.sh
   lineinfile:
@@ -14,7 +25,6 @@
     regexp: "^DBPASS="
     line: "DBPASS={{ mc_dbpass }}"
     state: present
-    backup: yes
 
 - name: Insert DB root password into generate_config.sh
   lineinfile:
@@ -22,7 +32,6 @@
     regexp: "^DBROOT="
     line: "DBROOT={{ mc_dbroot }}"
     state: present
-    backup: yes
 
 # Run the generate_config.sh script with expect
 - name: Generate mailcow configuration (only runs once).
@@ -42,4 +51,20 @@
     regexp: "^TZ"
     line: "TZ={{ mc_timezone }}"
     state: present
-    backup: yes
+
+- name: Insert additional subdomains(s) into mailcow.conf for SSL certificate generation.
+  lineinfile:
+    dest: "{{ mc_install_dir }}/mailcow.conf"
+    regexp: "^ADDITIONAL_SAN"
+    line: "ADDITIONAL_SAN={{ mc_nextcloud_subdomain }}.{{mc_domain}}"
+    state: present
+
+- pause:
+    minutes: 1200
+    prompt: Edit docker-compose to add a bind mount for Nextcloud
+
+- name: Pull docker images & start containers (WAIT a few minutes).
+  docker_service:
+    project_src: "{{ mc_install_dir }}"
+    pull: yes
+    state: present # equivalent to docker-compose up
