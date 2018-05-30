@@ -5,6 +5,7 @@
 mc_fqdn: mail.example.org
 mc_hostname: mail
 mc_domain: example.org
+mc_notify_email: admin@example.org
 mc_nextcloud_subdomain: cloud
 mc_timezone: Europe/Berlin
 mc_rainloop_install: false
@@ -12,6 +13,7 @@ mc_rainloop_dir: webmail
 mc_rainloop_password: pwd4admin
 mc_firewall_activate: false
 mc_backup_dir: "none"
+mc_root_path: ""
 
 mc_min_memory: 1500 # in MB
 mc_ip: "{{ ansible_default_ipv4.address }}"
