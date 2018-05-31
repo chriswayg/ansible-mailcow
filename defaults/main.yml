@@ -2,12 +2,13 @@
 # defaults file for chriswayg.mailcow
 
 ### Set your Server IP, Fully Qualified Domain Name and Timezone here ###
+mc_timezone: Europe/Berlin
 mc_fqdn: mail.example.org
 mc_hostname: mail
 mc_domain: example.org
 mc_notify_email: admin@example.org
 mc_nextcloud_subdomain: cloud
-mc_timezone: Europe/Berlin
+mc_nextcloud_install: false
 mc_rainloop_install: false
 mc_rainloop_dir: webmail
 mc_rainloop_password: pwd4admin
