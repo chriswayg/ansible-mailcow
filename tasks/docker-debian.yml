@@ -1,6 +1,5 @@
 ---
 # https://docs.docker.com/install/linux/docker-ce/debian/
-# https://docs.docker.com/compose/install/#alternative-install-options
 
 - name: Ensure old versions of Docker are not installed.
   apt:
@@ -41,13 +40,3 @@
   apt:
     pkg: docker-ce
     state: present
-
-# pip installation of docker-compose is needed for ansible docker_service to work
-# docker-compose installed from github did not work
-- name: Install via pip docker-py, docker-compose & pexpect packages.
-  pip:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - docker-compose
-    - pexpect
