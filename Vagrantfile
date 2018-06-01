@@ -39,10 +39,17 @@ boxes = [
   # },
   {
     :name => "debian-9",
-    :box => "bento/debian-9",
+    :box => "chriswayg/debian-9.4.0-x86_64",
     :ip => '10.0.0.16',
     :cpu => "50",
-    :ram => "512"
+    :ram => "2048"
+  },
+  {
+    :name => "rancheros",
+    :box => "chriswayg/RancherOS",
+    :ip => '10.0.0.17',
+    :cpu => "50",
+    :ram => "2048"
   },
 ]
 
@@ -59,7 +66,7 @@ Vagrant.configure("2") do |config|
         v.customize ["modifyvm", :id, "--memory", box[:ram]]
       end
 
-      vms.vm.network :private_network, ip: box[:ip]
+      #vms.vm.network :private_network, ip: box[:ip]
 
       vms.vm.provision :ansible do |ansible|
         ansible.playbook = "tests/vagrant.yml"
