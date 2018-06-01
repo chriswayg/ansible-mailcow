@@ -37,13 +37,13 @@ boxes = [
   #   :cpu => "50",
   #   :ram => "256"
   # },
-  {
-    :name => "debian-9",
-    :box => "chriswayg/debian-9.4.0-x86_64",
-    :ip => '10.0.0.16',
-    :cpu => "50",
-    :ram => "2048"
-  },
+  # {
+  #   :name => "debian-9",
+  #   :box => "chriswayg/debian-9.4.0-x86_64",
+  #   :ip => '10.0.0.16',
+  #   :cpu => "50",
+  #   :ram => "2048"
+  # },
   {
     :name => "rancheros",
     :box => "chriswayg/RancherOS",
@@ -59,7 +59,7 @@ Vagrant.configure("2") do |config|
   boxes.each do |box|
     config.vm.define box[:name] do |vms|
       vms.vm.box = box[:box]
-      vms.vm.hostname = "#{role}-#{box[:name]}"
+      #vms.vm.hostname = "#{role}-#{box[:name]}"
 
       vms.vm.provider "virtualbox" do |v|
         v.customize ["modifyvm", :id, "--cpuexecutioncap", box[:cpu]]
@@ -72,6 +72,7 @@ Vagrant.configure("2") do |config|
         ansible.playbook = "tests/vagrant.yml"
         ansible.verbose = "vv"
         ansible.compatibility_mode = "2.0"
+        ansible.extra_vars = { ansible_python_interpreter:"/usr/bin/python3" }
       end
     end
   end
