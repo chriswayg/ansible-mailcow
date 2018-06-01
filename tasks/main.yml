@@ -6,6 +6,13 @@
     that:
         - ansible_memory_mb.real.total >= {{ mc_min_memory }}
 
+- name: Ensure that pre-requisite is installed.
+  apt:
+    pkg: dbus
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
 # see also https://github.com/holms/ansible-fqdn
 - name: Set hostname.
   hostname:
