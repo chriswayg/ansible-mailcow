@@ -1,7 +1,6 @@
 ---
-- hosts: localhost
-  connection: local
-  become: true
+# tests run by travis
+- hosts: all
+
   roles:
-    - ../../
-    
+    - role: role_under_test
