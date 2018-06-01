@@ -3,9 +3,11 @@
 
 ### Set your Server IP, Fully Qualified Domain Name and Timezone here ###
 mc_timezone: Europe/Berlin
-mc_fqdn: mail.example.org
 mc_hostname: mail
 mc_domain: example.org
+mc_fqdn: "{{ mc_hostname }}.{{ mc_domain }}"
+mc_username: john
+mc_email: "{{ mc_username }}@{{ mc_domain }}"
 mc_notify_email: admin@example.org
 mc_nextcloud_subdomain: cloud
 mc_nextcloud_install: false
