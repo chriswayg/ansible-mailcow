@@ -5,7 +5,6 @@
   assert:
     that:
         - ansible_memory_mb.real.total >= {{ mc_min_memory }}
-  tags: not_on_rancheros
 
 # see also https://github.com/holms/ansible-fqdn
 - name: Set hostname.
@@ -13,7 +12,7 @@
     name: "{{ mc_hostname }}"
   notify:
     - restart systemd-logind
-  tags: not_on_rancheros
+  when: ansible_os_family == "Debian"
 
 - name: Copy hosts file with FQDN and hostname.
   template:
@@ -21,12 +20,12 @@
     dest: /etc/hosts
   notify:
     - restart systemd-logind
-  tags: not_on_rancheros
+  when: ansible_os_family == "Debian"
 
 - name: Set timezone.
   timezone:
     name: "{{ mc_timezone }}"
-  tags: not_on_rancheros
+  when: ansible_os_family == "Debian"
 
 - name: Update and upgrade all packages.
   apt:
@@ -48,7 +47,13 @@
     state: present
   with_items:
     - docker-compose
-    - pexpect
+
+- name: Ensure git is installed (RancherOS/Alpine).
+  apk:
+    name: git
+    state: present
+    update_cache: no
+  when: ansible_os_family == "Alpine"
 
 - name: Check, if mailcow is installed already, by checking if mailcow.conf exists.
   stat:
@@ -83,8 +88,9 @@
     cron_file: mailcow_backups
     user: root
     job: "BACKUP_LOCATION={{ mc_backup_dir }} /opt/mailcow-dockerized/helper-scripts/backup_and_restore.sh backup all >> /var/log/mailcow_backups.log 2>&1"
-  when: mc_backup_dir != "none"
-  tags: not_on_rancheros
+  when:
+    - mc_backup_dir != "none"
+    - ansible_os_family == "Debian"
 
 - name: Display post install message.
   debug:
