@@ -10,58 +10,47 @@
     update: yes
     force: yes
 
-## For debugging:
-# - name: Git checkout previous working work version.
-#   shell: git checkout 7031af4
-#   args:
-#     chdir: "{{ mc_install_dir }}"
+- name: Prevent asking for interactive input in generate_config.sh by removing read prompts.
+  replace:
+    path: "{{ mc_install_dir }}/generate_config.sh"
+    regexp: "^[\t ]*read -p"
+    replace: "  : #read -p"
+    backup: yes
 
-- debug:
-    msg: "User: {{mc_username}} Host: {{mc_hostname}} Domain: {{mc_domain}} FQDN: {{mc_fqdn}} Nextcloud: {{ mc_nextcloud_subdomain }}"
-
-- name: Insert DB password into generate_config.sh
-  lineinfile:
-    dest: "{{ mc_install_dir }}/generate_config.sh"
-    regexp: "^DBPASS="
-    line: "DBPASS={{ mc_dbpass }}"
-    state: present
-
-- name: Insert DB root password into generate_config.sh
-  lineinfile:
-    dest: "{{ mc_install_dir }}/generate_config.sh"
-    regexp: "^DBROOT="
-    line: "DBROOT={{ mc_dbroot }}"
-    state: present
-
-# Run the generate_config.sh script with expect
+# intermittently the script uses the busybox version of grep and fails, thus force bash
 - name: Generate mailcow configuration (only runs once).
-  expect:
-    command: ./generate_config.sh
-    responses:
-      Timezone: " "
+  shell: ./generate_config.sh
   args:
+    executable: /bin/bash
     chdir: /opt/mailcow-dockerized/
     creates: "{{ mc_install_dir }}/mailcow.conf"
   environment:
     MAILCOW_HOSTNAME: "{{ mc_fqdn }}"
 
+# the TZ environment variable isn't used by generate_config.sh, thus set it here.
 - name: Insert timezone into mailcow.conf.
   lineinfile:
-    dest: "{{ mc_install_dir }}/mailcow.conf"
-    regexp: "^TZ"
+    path: "{{ mc_install_dir }}/mailcow.conf"
+    regexp: "^TZ="
     line: "TZ={{ mc_timezone }}"
     state: present
 
-- name: Insert additional subdomains(s) into mailcow.conf for SSL certificate generation.
+- name: Insert additional subdomains into mailcow.conf for SSL certificate generation.
   lineinfile:
-    dest: "{{ mc_install_dir }}/mailcow.conf"
+    path: "{{ mc_install_dir }}/mailcow.conf"
     regexp: "^ADDITIONAL_SAN"
-    line: "ADDITIONAL_SAN={{ mc_nextcloud_subdomain }}.{{mc_domain}}"
+    line: "ADDITIONAL_SAN={{ mc_nextcloud_subdomain }}.{{ mc_domain }}"
     state: present
 
-- pause:
-    minutes: 1200
-    prompt: Edit docker-compose to add a bind mount for Nextcloud
+- name: Insert watchdog notify email into mailcow.conf.
+  lineinfile:
+    path: "{{ mc_install_dir }}/mailcow.conf"
+    regexp: "^#WATCHDOG_NOTIFY_EMAIL="
+    line: "WATCHDOG_NOTIFY_EMAIL={{ mc_notify_email }}"
+    state: present
+
+# TODO: (optional)
+#  Modify docker-compose to add a bind mount for Nextcloud with s3ql
 
 - name: Pull docker images & start containers (WAIT a few minutes).
   docker_service:
