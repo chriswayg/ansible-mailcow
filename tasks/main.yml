@@ -6,20 +6,20 @@
     that:
         - ansible_memory_mb.real.total >= {{ mc_min_memory }}
 
-- name: Ensure that pre-requisite is installed.
-  apt:
-    pkg: dbus
-    state: present
-    update_cache: yes
-  when: ansible_os_family == "Debian"
-
-# see also https://github.com/holms/ansible-fqdn
-- name: Set hostname.
-  hostname:
-    name: "{{ mc_hostname }}"
-  notify:
-    - restart systemd-logind
-  when: ansible_os_family == "Debian"
+# - name: Ensure that pre-requisite is installed.
+#   apt:
+#     pkg: dbus
+#     state: present
+#     update_cache: yes
+#   when: ansible_os_family == "Debian"
+#
+# # see also https://github.com/holms/ansible-fqdn
+# - name: Set hostname.
+#   hostname:
+#     name: "{{ mc_hostname }}"
+#   notify:
+#     - restart systemd-logind
+#   when: ansible_os_family == "Debian"
 
 - name: Copy hosts file with FQDN and hostname.
   template:
