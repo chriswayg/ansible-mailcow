@@ -1,14 +1,11 @@
 ---
 # tasks file for chriswayg.mailcow
 
-# - name: WARNING
-#   pause:
-#     prompt: "This will REMOVE other email MTAs from the server! Press Enter to continue..."
-
 - name: check, if we have enough memory on the server
   assert:
     that:
         - ansible_memory_mb.real.total >= {{ mc_min_memory }}
+  tags: not_on_rancheros
 
 # see also https://github.com/holms/ansible-fqdn
 - name: Set hostname.
@@ -16,6 +13,7 @@
     name: "{{ mc_hostname }}"
   notify:
     - restart systemd-logind
+  tags: not_on_rancheros
 
 - name: Copy hosts file with FQDN and hostname.
   template:
@@ -23,19 +21,34 @@
     dest: /etc/hosts
   notify:
     - restart systemd-logind
+  tags: not_on_rancheros
 
 - name: Set timezone.
   timezone:
     name: "{{ mc_timezone }}"
+  tags: not_on_rancheros
 
 - name: Update and upgrade all packages.
   apt:
     upgrade: yes
     update_cache: yes
     cache_valid_time: 86400 #One day
+  when: ansible_os_family == "Debian"
 
-- name: Include Docker related tasks.
-  include_tasks: docker.yml
+- name: Ensure Docker is installed.
+  include_tasks: docker-debian.yml
+  when: ansible_os_family == "Debian"
+
+# pip installation of docker-compose is needed for ansible docker_service to work
+# - https://docs.docker.com/compose/install/#alternative-install-options
+# - docker-compose installed from github did not work
+- name: Ensure docker-compose is installed (via pip).
+  pip:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - docker-compose
+    - pexpect
 
 - name: Check, if mailcow is installed already, by checking if mailcow.conf exists.
   stat:
@@ -49,12 +62,18 @@
   when: mailcow_conf.stat.exists == false
 
 - name: Install RainLoop webmail client.
-  include_tasks: rainloop.yml
+  include_tasks: install-rainloop.yml
   when: mc_rainloop_install
+
+- name: Install NextCloud.
+  include_tasks: install-nextcloud.yml
+  when: mc_nextcloud_install
 
 - name: Activate mailserver firewall rules.
   include_tasks: mailserver_firewall.yml
-  when: mc_firewall_activate
+  when:
+    - mc_firewall_activate
+    - ansible_os_family == "Debian"
 
 - name: Create a daily backup cronjob to backup all mailcow data at 4:30 AM.
   cron:
@@ -65,3 +84,11 @@
     user: root
     job: "BACKUP_LOCATION={{ mc_backup_dir }} /opt/mailcow-dockerized/helper-scripts/backup_and_restore.sh backup all >> /var/log/mailcow_backups.log 2>&1"
   when: mc_backup_dir != "none"
+  tags: not_on_rancheros
+
+- name: Display post install message.
+  debug:
+    msg:
+      - '*** Things to do now:'
+      - '- Visit https://{{ mc_fqdn }} and CHANGE THE DEFAULT PASSWORD `moohoo`!'
+      - '- then setup the main domain: {{ mc_domain }} and the user: {{ mc_email }}'
