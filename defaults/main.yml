@@ -14,7 +14,6 @@ mc_rainloop_dir: webmail
 mc_rainloop_password: pwd4admin
 mc_firewall_activate: false
 mc_backup_dir: "none"
-mc_root_path: ""
 
 mc_min_memory: 1500 # in MB
 mc_ip: "{{ ansible_default_ipv4.address }}"

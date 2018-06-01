@@ -3,19 +3,19 @@
 # rules created by docker or fail2ban should not be interfered with.
 - name: Create firewall directory.
   file:
-   path:  "{{ mc_root_path }}/etc/firewall"
+   path:  "/etc/firewall"
    state: directory
 
 - name: Copy script which adds Mailserver IPtables rules.
   copy:
     src:  add_mailserver_fw_rules.sh
-    dest: "{{ mc_root_path }}/etc/firewall/add_mailserver_fw_rules.sh"
+    dest: "/etc/firewall/add_mailserver_fw_rules.sh"
     mode: a+x
 
 - name: Create systemd service to add Firewall Mailserver rules to iptables.
   copy:
     src:  firewall.service
-    dest: "{{ mc_root_path }}/etc/systemd/system/firewall.service"
+    dest: "/etc/systemd/system/firewall.service"
   notify:
   - reload systemd
   - restart firewall
