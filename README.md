@@ -3,6 +3,13 @@ chriswayg.mailcow
 
 #### Ansible role for an initial install of the mailcow mailserver and groupware
 
+- installs Docker and docker-compose
+- installs and configures mailcow-dockerized
+- option to install [RainLoop Webmail](https://www.rainloop.net/)
+- option to install [NextCloud](https://nextcloud.com/)
+- option to add mailserver firewall rules
+- option to add a backup cron job
+
 Details and documentation:
 - https://github.com/mailcow/mailcow-dockerized
 - https://mailcow.github.io/mailcow-dockerized-docs/
@@ -13,6 +20,7 @@ Requirements
 ------------
 
 - Debian 9 stretch
+- or [RancherOS](https://rancher.com/rancher-os/) with Alpine console
 - 1.5 to 2 GB RAM
 
 #### Info
@@ -32,18 +40,27 @@ Requirements
 Role Variables
 --------------
 
-Set your Server IP, Fully Qualified Domain Name and Timezone in defaults/main.yml
+At a minimum set your Server IP, Fully Qualified Domain Name and Timezone in defaults/main.yml
 
+Example hosts
+-------------
 
-Example Playbook
+    [servers]
+    OnDebian    ansible_host=mail.example.org
+    OnRancherOS ansible_ssh_host=mail.example.com ansible_ssh_user=rancher ansible_python_interpreter=/usr/bin/python3
+
+Example mailcow playbook
 ----------------
 
     - hosts: servers
       user: root
+      become: True
       roles:
          - chriswayg.mailcow
 
-`$ ansible-playbook -v mailcow.yml`
+
+- For Debian: `ansible-playbook -v mailcow.yml`
+- For RancherOS: `ansible-playbook -v mailcow.yml --skip-tags "not_on_rancheros"`
 
 License
 -------
