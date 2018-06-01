@@ -1,0 +1,37 @@
+---
+- name: Prevent asking for interactive input in nextcloud.sh by removing read prompts.
+  replace:
+    path: "{{ mc_install_dir }}/helper-scripts/nextcloud.sh"
+    regexp: "^[\t ]*read -p"
+    replace: "    : #read -p"
+
+- name: Prevent errors due to docker tty.
+  replace:
+    path: "{{ mc_install_dir }}/helper-scripts/nextcloud.sh"
+    regexp: "^[\t ]*docker exec -it"
+    replace: "      docker exec -i"
+
+- name: Prevent asking for interactive input in nextcloud.sh by removing read prompts.
+  replace:
+    path: "{{ mc_install_dir }}/helper-scripts/nextcloud.sh"
+    regexp: "^[\t ]*curl -L#"
+    replace: "     curl -Ls"
+
+- name: Set subdomain yes in nextcloud.sh.
+  replace:
+    path: "{{ mc_install_dir }}/helper-scripts/nextcloud.sh"
+    regexp: "NC_TYPE=$"
+    replace: "NC_TYPE=subdomain"
+
+- name: Set subdomain name in nextcloud.sh.
+  replace:
+    path: "{{ mc_install_dir }}/helper-scripts/nextcloud.sh"
+    regexp: "NC_SUBD=$"
+    replace: "NC_SUBD={{ mc_nextcloud_subdomain }}.{{ mc_domain }}"
+
+- name: Run NextCloud installer (only runs once).
+  shell: ./nextcloud.sh --install
+  args:
+    executable: /bin/bash
+    chdir: "{{ mc_install_dir }}/helper-scripts/"
+    creates: "{{ mc_install_dir }}/data/web/nextcloud/index.php"
