@@ -59,8 +59,7 @@ Example mailcow playbook
          - chriswayg.mailcow
 
 
-- For Debian: `ansible-playbook -v mailcow.yml`
-- For RancherOS: `ansible-playbook -v mailcow.yml --skip-tags "not_on_rancheros"`
+- For Debian or RancherOS: `ansible-playbook -v mailcow.yml`
 
 License
 -------
