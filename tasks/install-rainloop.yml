@@ -5,6 +5,7 @@
     state: present
   with_items:
     - unzip
+  when: ansible_os_family == "Debian"
 
 - name: Check for existing Rainloop install. The install tasks will run only once.
   stat:
@@ -81,12 +82,6 @@
   register: rainloop_status
 
 - name: Restart the nginx container.
-  # docker_container:
-  #   name: mailcowdockerized_nginx-mailcow_1
-  #   image: nginx:mainline-alpine
-  #   state: started
-  #   restart: yes
-  # when: rainloop_status is changed
   docker_service:
     project_src: "{{ mc_install_dir }}"
     state: present
