@@ -6,13 +6,6 @@
     that:
         - ansible_memory_mb.real.total >= {{ mc_min_memory }}
 
-# - name: Ensure that pre-requisite for travis test is installed.
-#   apt:
-#     pkg: dbus
-#     state: present
-#     update_cache: yes
-#   when: ansible_os_family == "Debian"
-
 # see also https://github.com/holms/ansible-fqdn
 - name: Set hostname.
   hostname:
@@ -21,6 +14,7 @@
     - restart systemd-logind
   when: ansible_os_family == "Debian"
 
+# this should be set by cloud-init in RancherOS
 - name: Copy hosts file with FQDN and hostname.
   template:
     src: hosts.j2
