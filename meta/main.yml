@@ -15,6 +15,7 @@ galaxy_info:
     versions:
 #   - jessie
     - stretch
+    - buster
   - name: Alpine
 
   galaxy_tags: [mailserver]

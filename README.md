@@ -19,7 +19,7 @@ Details and documentation:
 Requirements
 ------------
 
-- Debian 9 stretch
+- Debian 9 Stretch or Debian 10 Buster
 - or [RancherOS](https://rancher.com/rancher-os/) with Alpine console
 - 1.5 to 2 GB RAM
 
