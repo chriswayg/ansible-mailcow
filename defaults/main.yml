@@ -9,6 +9,8 @@ mc_fqdn: "{{ mc_hostname }}.{{ mc_domain }}"
 mc_username: john
 mc_email: "{{ mc_username }}@{{ mc_domain }}"
 mc_notify_email: admin@example.org
+mc_skip_clamd: n  # needs >2GB memory
+mc_skip_solr: y   # needs >3.5GB memory
 mc_nextcloud_subdomain: cloud
 mc_nextcloud_install: false
 mc_rainloop_install: false
@@ -17,7 +19,7 @@ mc_rainloop_password: pwd4admin
 mc_firewall_activate: false
 mc_backup_dir: "none"
 
-mc_min_memory: 1500 # in MB
+mc_min_memory: 1900  # in MB
 mc_ip: "{{ ansible_default_ipv4.address }}"
 mc_install_dir: /opt/mailcow-dockerized
 mc_dbpass: "{{ lookup('password', '/dev/null length=28 chars=ascii_letters,digits') }}"

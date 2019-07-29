@@ -10,30 +10,25 @@
     update: yes
     force: yes
 
-- name: Prevent asking for interactive input in generate_config.sh by removing read prompts.
-  replace:
-    path: "{{ mc_install_dir }}/generate_config.sh"
-    regexp: "^[\t ]*read -p"
-    replace: "  : #read -p"
-    backup: yes
+- name: Create a generate_config_non_interactive file with settings from template.
+  template:
+    src: generate_config_non_interactive.j2
+    dest: "{{ mc_install_dir }}/generate_config_non_interactive.sh"
+    mode: a+x
+
+- name: Append only the non-interactive portion of generate_config.sh.
+  shell: cat generate_config.sh | sed -n -e '/cat << EOF > mailcow.conf/,$p' >> generate_config_non_interactive.sh
+  args:
+    executable: /bin/bash
+    chdir: /opt/mailcow-dockerized/
 
 # intermittently the script uses the busybox version of grep and fails, thus force bash
-- name: Generate mailcow configuration (only runs once).
-  shell: ./generate_config.sh
+- name: Generate mailcow configuration using non-interactive script (only runs once).
+  shell: ./generate_config_non_interactive.sh
   args:
     executable: /bin/bash
     chdir: /opt/mailcow-dockerized/
     creates: "{{ mc_install_dir }}/mailcow.conf"
-  environment:
-    MAILCOW_HOSTNAME: "{{ mc_fqdn }}"
-
-# the TZ environment variable isn't used by generate_config.sh, thus set it here.
-- name: Insert timezone into mailcow.conf.
-  lineinfile:
-    path: "{{ mc_install_dir }}/mailcow.conf"
-    regexp: "^TZ="
-    line: "TZ={{ mc_timezone }}"
-    state: present
 
 - name: Insert additional subdomains into mailcow.conf for SSL certificate generation.
   lineinfile:
