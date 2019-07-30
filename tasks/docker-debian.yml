@@ -12,6 +12,15 @@
     - docker-engine
     - docker.io
 
+# Fix for buster: ImportError: No module named ssl_match_hostname
+# have to install python-backports.ssl-match-hostname prior to Pip installation!
+# https://github.com/docker/docker-py/issues/1502#issuecomment-509898861
+- name: Ensure that python-backports.ssl module is installed.
+  apt:
+    pkg: python-backports.ssl-match-hostname
+    state: present
+  when: ansible_distribution == "Debian" and ansible_distribution_release == "buster"
+
 - name: Install pre-requisite packages for Docker and docker-compose
   apt:
     pkg: "{{ item }}"
