@@ -6,7 +6,7 @@
     replace: "  : #read -"
     backup: yes
 
-- name: Prevent errors due to docker tty.
+- name: Prevent errors due to docker tty running non-interactive.
   replace:
     path: "{{ mc_install_dir }}/helper-scripts/nextcloud.sh"
     regexp: "docker exec -it"
@@ -23,6 +23,11 @@
     path: "{{ mc_install_dir }}/helper-scripts/nextcloud.sh"
     regexp: "NC_SUBD=$"
     replace: "NC_SUBD={{ mc_nextcloud_subdomain }}.{{ mc_domain }}"
+
+## TODO:
+# ADMIN_NC_PASS=$(</dev/urandom tr -dc A-Za-z0-9 | head -c 28)
+# add password after the line above
+# ADMIN_NC_PASS="{ my_nc_passwoord }"
 
 - name: Run NextCloud installer (only runs once).
   shell: ./nextcloud.sh --install
