@@ -1,6 +1,9 @@
 ---
 ### Download, configure and install mailcow-dockerized.
 
+# TODO: (optional)
+#  Modify docker-compose to add a bind mount for Nextcloud with s3ql
+
 - name: Clone mailcow repo.
   git:
     repo: https://github.com/mailcow/mailcow-dockerized
@@ -20,17 +23,17 @@
   shell: cat generate_config.sh | sed -n -e '/cat << EOF > mailcow.conf/,$p' >> generate_config_non_interactive.sh
   args:
     executable: /bin/bash
-    chdir: /opt/mailcow-dockerized/
+    chdir: "{{ mc_install_dir }}"
 
 # intermittently the script uses the busybox version of grep and fails, thus force bash
 - name: Generate mailcow configuration using non-interactive script (only runs once).
   shell: ./generate_config_non_interactive.sh
   args:
     executable: /bin/bash
-    chdir: /opt/mailcow-dockerized/
+    chdir: "{{ mc_install_dir }}"
     creates: "{{ mc_install_dir }}/mailcow.conf"
 
-- name: Insert additional subdomains into mailcow.conf for SSL certificate generation.
+- name: Insert nextcloud subdomain into mailcow.conf for SSL certificate generation.
   lineinfile:
     path: "{{ mc_install_dir }}/mailcow.conf"
     regexp: "^ADDITIONAL_SAN"
@@ -44,11 +47,30 @@
     line: "WATCHDOG_NOTIFY_EMAIL={{ mc_notify_email }}"
     state: present
 
-# TODO: (optional)
-#  Modify docker-compose to add a bind mount for Nextcloud with s3ql
-
-- name: Pull docker images & start containers (WAIT a few minutes).
-  docker_service:
+# TODO: Fix ansible error on Debian Buster
+- name: Pull docker images & start containers (this takes a while).
+  docker_compose:
     project_src: "{{ mc_install_dir }}"
     pull: yes
     state: present # equivalent to docker-compose up
+  when: ansible_distribution == "Debian" and ansible_distribution_release == "stretch"
+
+- name: Pull docker images (this takes a while).
+  shell: docker-compose pull
+  args:
+    executable: /bin/bash
+    chdir: "{{ mc_install_dir }}"
+  when: ansible_distribution == "Debian" and ansible_distribution_release == "buster"
+
+- name: Start containers.
+  shell: docker-compose up -d
+  args:
+    executable: /bin/bash
+    chdir: "{{ mc_install_dir }}"
+  when: ansible_distribution == "Debian" and ansible_distribution_release == "buster"
+# Fix - end.
+
+- name: Create file to flag that mailcow has been installed already.
+  file:
+    path: "{{ mc_install_dir }}/mailcow.installed"
+    state: touch
