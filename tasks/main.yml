@@ -49,6 +49,23 @@
   with_items:
     - docker-compose
 
+# Fix for Debian Buster: ImportError: No module named ssl_match_hostname
+# https://github.com/docker/docker-py/issues/1502#issuecomment-506544849
+# - name: Ensure docker-backports.ssl-match-hostname is installed (via pip).
+#   pip:
+#     name: "{{ item }}"
+#     state: absent
+#   with_items:
+#     - backports.ssl-match-hostname
+#   when: ansible_distribution == "Debian" and ansible_distribution_release == "buster"
+
+# - name: Ensure that python-backports.ssl module is installed.
+#   apt:
+#     pkg: python-backports.ssl-match-hostname
+#     state: present
+#   when: ansible_distribution == "Debian" and ansible_distribution_release == "buster"
+# End Fix
+
 - name: Ensure git is installed (RancherOS/Alpine).
   apk:
     name: git
@@ -56,16 +73,16 @@
     update_cache: no
   when: ansible_os_family == "Alpine"
 
-- name: Check, if mailcow is installed already, by checking if mailcow.conf exists.
+- name: Check, if mailcow is installed already, by checking if mailcow.installed exists.
   stat:
-    path: "{{ mc_install_dir }}/mailcow.conf"
-  register: mailcow_conf
+    path: "{{ mc_install_dir }}/mailcow.installed"
+  register: mailcow_installed
 
 # this ansible role will do this only for the initial install
-# use the mailcow update script for updates
+# use the *mailcow update* script for updates
 - name: Download, configure and install mailcow-dockerized.
   include_tasks: install-mailcow.yml
-  when: mailcow_conf.stat.exists == false
+  when: mailcow_installed.stat.exists == false
 
 - name: Install RainLoop webmail client.
   include_tasks: install-rainloop.yml
@@ -88,7 +105,7 @@
     name: Backup all mailcow data
     cron_file: mailcow_backups
     user: root
-    job: "BACKUP_LOCATION={{ mc_backup_dir }} /opt/mailcow-dockerized/helper-scripts/backup_and_restore.sh backup all >> /var/log/mailcow_backups.log 2>&1"
+    job: "BACKUP_LOCATION={{ mc_backup_dir }} {{ mc_backup_dir }}/helper-scripts/backup_and_restore.sh backup all >> /var/log/mailcow_backups.log 2>&1"
   when:
     - mc_backup_dir != "none"
     - ansible_os_family == "Debian"
