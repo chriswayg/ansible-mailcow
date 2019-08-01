@@ -30,7 +30,7 @@
 
 - name: Update and upgrade all packages.
   apt:
-    upgrade: yes
+    upgrade: "yes"
     update_cache: yes
     cache_valid_time: 86400 #One day
   when: ansible_os_family == "Debian"
@@ -44,10 +44,8 @@
 # - docker-compose installed from github did not work
 - name: Ensure docker-compose is installed (via pip).
   pip:
-    name: "{{ item }}"
+    name: docker-compose
     state: present
-  with_items:
-    - docker-compose
 
 # Fix for Debian Buster: ImportError: No module named ssl_match_hostname
 # https://github.com/docker/docker-py/issues/1502#issuecomment-506544849
@@ -61,7 +59,7 @@
 
 # - name: Ensure that python-backports.ssl module is installed.
 #   apt:
-#     pkg: python-backports.ssl-match-hostname
+#     name: python-backports.ssl-match-hostname
 #     state: present
 #   when: ansible_distribution == "Debian" and ansible_distribution_release == "buster"
 # End Fix
@@ -100,8 +98,8 @@
 
 - name: Create a daily backup cronjob to backup all mailcow data at 4:30 AM.
   cron:
-    minute: 30
-    hour: 4
+    minute: "30"
+    hour: "4"
     name: Backup all mailcow data
     cron_file: mailcow_backups
     user: root

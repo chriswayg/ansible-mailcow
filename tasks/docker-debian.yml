@@ -3,29 +3,31 @@
 
 - name: Ensure old versions of Docker are not installed.
   apt:
-    pkg: "{{ item }}"
+    name: "{{ packages }}"
     state: absent
     autoremove: yes
     purge: yes
-  with_items:
+  vars:
+    packages:
     - docker
     - docker-engine
     - docker.io
 
-# Fix for buster: ImportError: No module named ssl_match_hostname
-# have to install python-backports.ssl-match-hostname prior to Pip installation!
+# Fix for Debian Buster: 'ImportError: No module named ssl_match_hostname'
+# need to install python-backports.ssl-match-hostname prior to Pip installation!
 # https://github.com/docker/docker-py/issues/1502#issuecomment-509898861
 - name: Ensure that python-backports.ssl module is installed.
   apt:
-    pkg: python-backports.ssl-match-hostname
+    name: python-backports.ssl-match-hostname
     state: present
   when: ansible_distribution == "Debian" and ansible_distribution_release == "buster"
 
 - name: Install pre-requisite packages for Docker and docker-compose
   apt:
-    pkg: "{{ item }}"
+    name: "{{ packages }}"
     state: present
-  with_items:
+  vars:
+    packages:
     - apt-transport-https
     - ca-certificates
     - curl
@@ -47,5 +49,5 @@
 
 - name: Install Docker.
   apt:
-    pkg: docker-ce
+    name: docker-ce
     state: present
