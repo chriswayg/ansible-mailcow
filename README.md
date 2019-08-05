@@ -1,4 +1,4 @@
-chriswayg.mailcow
+ansible-mailcow
 =================
 
 #### Ansible role for an initial install of the mailcow mailserver and groupware
@@ -56,7 +56,7 @@ Example mailcow playbook
       user: root
       become: True
       roles:
-         - chriswayg.mailcow
+         - ansible-mailcow
 
 
 - For Debian or RancherOS: `ansible-playbook -v mailcow.yml`

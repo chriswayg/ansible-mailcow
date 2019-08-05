@@ -1,5 +1,5 @@
 ---
-# handlers file for chriswayg.mailcow
+# handlers file for ansible-mailcow
 
 - name: restart systemd-logind
   service:

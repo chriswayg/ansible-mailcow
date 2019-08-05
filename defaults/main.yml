@@ -1,5 +1,5 @@
 ---
-# defaults file for chriswayg.mailcow
+# defaults file for ansible-mailcow
 
 ### Set your Server IP, Fully Qualified Domain Name and Timezone here ###
 mc_timezone: Europe/Berlin

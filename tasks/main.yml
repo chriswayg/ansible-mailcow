@@ -1,5 +1,5 @@
 ---
-# tasks file for chriswayg.mailcow
+# tasks file for ansible-mailcow
 
 - name: check, if we have enough memory on the server
   assert:
