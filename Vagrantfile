@@ -37,20 +37,20 @@ boxes = [
   #   :cpu => "50",
   #   :ram => "256"
   # },
-  # {
-  #   :name => "debian-9",
-  #   :box => "chriswayg/debian-9.4.0-x86_64",
-  #   :ip => '10.0.0.16',
-  #   :cpu => "50",
-  #   :ram => "2048"
-  # },
   {
-    :name => "rancheros",
-    :box => "chriswayg/RancherOS",
-    :ip => '10.0.0.17',
+    :name => "debian-9",
+    :box => "chriswayg/debian-9.4.0-x86_64",
+    :ip => '10.0.0.16',
     :cpu => "50",
     :ram => "2048"
   },
+  # {
+  #   :name => "rancheros",
+  #   :box => "chriswayg/RancherOS",
+  #   :ip => '10.0.0.17',
+  #   :cpu => "50",
+  #   :ram => "2048"
+  # },
 ]
 
 role = File.basename(File.expand_path(File.dirname(__FILE__)))
