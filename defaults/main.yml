@@ -1,16 +1,28 @@
 ---
 # defaults file for ansible-mailcow
 
-### Set your Server IP, Fully Qualified Domain Name and Timezone here ###
+### Set Fully Qualified Domain Name and Timezone here ###
+# - use timezone, domain, fqdn derived from "ansible-initial-server"
+
+# used for maicow.config
 mc_timezone: Europe/Berlin
-mc_hostname: mail
+
+# used in rainloop, nextcloud
 mc_domain: example.org
-mc_fqdn: "{{ mc_hostname }}.{{ mc_domain }}"
-mc_username: john
-mc_email: "{{ mc_username }}@{{ mc_domain }}"
-mc_notify_email: admin@example.org
-mc_skip_clamd: n  # needs >2GB memory
-mc_skip_solr: y   # needs >3.5GB memory
+
+# used for maicow.config and in rainloop
+mc_fqdn: "mail.{{ mc_domain }}"
+
+# used by mailcow watchdog and other roles, if installed:
+#  etckeeper, msmtp, fail2ban, unattended upgrades
+mc_email: "john@{{ mc_domain }}"
+
+# needs >2GB memory
+mc_skip_clamd: n
+
+# needs >3.5GB memory
+mc_skip_solr: y
+
 mc_nextcloud_subdomain: cloud
 mc_nextcloud_install: false
 mc_rainloop_install: false
