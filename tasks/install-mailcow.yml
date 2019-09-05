@@ -44,7 +44,7 @@
   lineinfile:
     path: "{{ mc_install_dir }}/mailcow.conf"
     regexp: "^#WATCHDOG_NOTIFY_EMAIL="
-    line: "WATCHDOG_NOTIFY_EMAIL={{ mc_notify_email }}"
+    line: "WATCHDOG_NOTIFY_EMAIL={{ mc_email }}"
     state: present
 
 # TODO: Fix ansible error on Debian Buster
