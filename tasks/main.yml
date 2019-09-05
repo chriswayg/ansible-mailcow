@@ -6,27 +6,7 @@
     that:
         - ansible_memory_mb.real.total >= {{ mc_min_memory }}
 
-# see also https://github.com/holms/ansible-fqdn
-- name: Set hostname.
-  hostname:
-    name: "{{ mc_hostname }}"
-  notify:
-    - restart systemd-logind
-  when: ansible_os_family == "Debian"
-
-# this should be set by cloud-init in RancherOS
-- name: Copy hosts file with FQDN and hostname.
-  template:
-    src: hosts.j2
-    dest: /etc/hosts
-  notify:
-    - restart systemd-logind
-  when: ansible_os_family == "Debian"
-
-- name: Set timezone.
-  timezone:
-    name: "{{ mc_timezone }}"
-  when: ansible_os_family == "Debian"
+# first run 'ansible-initial-server'
 
 - name: Update and upgrade all packages.
   apt:
@@ -46,23 +26,6 @@
   pip:
     name: docker-compose
     state: present
-
-# Fix for Debian Buster: ImportError: No module named ssl_match_hostname
-# https://github.com/docker/docker-py/issues/1502#issuecomment-506544849
-# - name: Ensure docker-backports.ssl-match-hostname is installed (via pip).
-#   pip:
-#     name: "{{ item }}"
-#     state: absent
-#   with_items:
-#     - backports.ssl-match-hostname
-#   when: ansible_distribution == "Debian" and ansible_distribution_release == "buster"
-
-# - name: Ensure that python-backports.ssl module is installed.
-#   apt:
-#     name: python-backports.ssl-match-hostname
-#     state: present
-#   when: ansible_distribution == "Debian" and ansible_distribution_release == "buster"
-# End Fix
 
 - name: Ensure git is installed (RancherOS/Alpine).
   apk:
@@ -113,4 +76,4 @@
     msg:
       - '*** Things to do now:'
       - '- Visit https://{{ mc_fqdn }} and CHANGE THE DEFAULT PASSWORD `moohoo`!'
-      - '- then setup the main domain: {{ mc_domain }} and the user: {{ mc_email }}'
+      - '- then setup the main domain: {{ mc_domain }} and the main user: {{ mc_email }}'
